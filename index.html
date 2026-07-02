@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raffle</title>
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 0 20px;
+    background: #f7f7f8;
+    color: #222;
+  }
+  h1 { text-align: center; }
+  form { display: flex; gap: 8px; margin-bottom: 20px; }
+  input[type="text"] {
+    flex: 1;
+    padding: 10px;
+    font-size: 16px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+  }
+  button {
+    padding: 10px 16px;
+    font-size: 16px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  form button { background: #333; color: #fff; }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px;
+  }
+  li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 8px 12px;
+    margin-bottom: 6px;
+  }
+  li button {
+    background: none;
+    color: #c00;
+    font-size: 14px;
+    padding: 2px 8px;
+  }
+  #chooseBtn {
+    width: 100%;
+    background: #0a7a3d;
+    color: #fff;
+    padding: 14px;
+    font-size: 18px;
+    margin-bottom: 16px;
+  }
+  #chooseBtn:disabled { background: #999; cursor: not-allowed; }
+  #winner {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    min-height: 30px;
+  }
+  #count { text-align: center; color: #666; margin-bottom: 8px; }
+</style>
+</head>
+<body>
+
+<h1>🎟️ Raffle</h1>
+
+<form id="entryForm">
+  <input type="text" id="nameInput" placeholder="Enter name" autocomplete="off" required>
+  <button type="submit">Add</button>
+</form>
+
+<div id="count"></div>
+<ul id="entryList"></ul>
+
+<button id="chooseBtn">Choose Winner</button>
+<div id="winner"></div>
+
+<script>
+  const form = document.getElementById('entryForm');
+  const nameInput = document.getElementById('nameInput');
+  const entryList = document.getElementById('entryList');
+  const chooseBtn = document.getElementById('chooseBtn');
+  const winnerEl = document.getElementById('winner');
+  const countEl = document.getElementById('count');
+
+  let entries = JSON.parse(localStorage.getItem('raffleEntries') || '[]');
+
+  function save() {
+    localStorage.setItem('raffleEntries', JSON.stringify(entries));
+  }
+
+  function render() {
+    entryList.innerHTML = '';
+    entries.forEach((name, i) => {
+      const li = document.createElement('li');
+      li.textContent = name;
+      const removeBtn = document.createElement('button');
+      removeBtn.textContent = 'remove';
+      removeBtn.onclick = () => {
+        entries.splice(i, 1);
+        save();
+        render();
+      };
+      li.appendChild(removeBtn);
+      entryList.appendChild(li);
+    });
+    countEl.textContent = entries.length
+      ? `${entries.length} entr${entries.length === 1 ? 'y' : 'ies'}`
+      : 'No entries yet';
+    chooseBtn.disabled = entries.length === 0;
+  }
+
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const name = nameInput.value.trim();
+    if (!name) return;
+    entries.push(name);
+    save();
+    nameInput.value = '';
+    winnerEl.textContent = '';
+    render();
+  });
+
+  chooseBtn.addEventListener('click', () => {
+    if (entries.length === 0) return;
+    const winner = entries[Math.floor(Math.random() * entries.length)];
+    winnerEl.textContent = `🎉 Winner: ${winner}`;
+  });
+
+  render();
+</script>
+
+</body>
+</html>
