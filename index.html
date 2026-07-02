@@ -164,9 +164,9 @@
   window.addEventListener('resize', resizeCanvas);
   resizeCanvas();
 
-  function spawnBurst() {
-    const x = Math.random() * canvas.width;
-    const y = Math.random() * canvas.height * 0.6;
+  function spawnBurst(x, y) {
+    if (x === undefined) x = Math.random() * canvas.width;
+    if (y === undefined) y = Math.random() * canvas.height * 0.8;
     const hue = Math.floor(Math.random() * 360);
     const count = 40;
     for (let i = 0; i < count; i++) {
@@ -203,13 +203,29 @@
   function launchFireworks() {
     if (fireworksTimer) clearInterval(fireworksTimer);
     if (!animationFrame) animate();
-    spawnBurst();
-    let bursts = 1;
+
+    // Divide the screen into columns so bursts spread across the whole width,
+    // firing a few at once each round for full-screen coverage.
+    const columns = 6;
+    const colWidth = canvas.width / columns;
+
+    function spawnRound() {
+      const order = Array.from({ length: columns }, (_, i) => i)
+        .sort(() => Math.random() - 0.5);
+      order.slice(0, 3).forEach(col => {
+        const x = colWidth * col + Math.random() * colWidth;
+        const y = Math.random() * canvas.height * 0.8;
+        spawnBurst(x, y);
+      });
+    }
+
+    spawnRound();
+    let rounds = 1;
     fireworksTimer = setInterval(() => {
-      spawnBurst();
-      bursts++;
-      if (bursts >= 6) clearInterval(fireworksTimer);
-    }, 300);
+      spawnRound();
+      rounds++;
+      if (rounds >= 6) clearInterval(fireworksTimer);
+    }, 400);
   }
 </script>
 
